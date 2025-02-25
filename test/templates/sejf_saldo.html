@@ -1,0 +1,143 @@
+
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <h2 class="title">Sejf Saldo</h2>
+
+    <div class="card-container">
+        <div class="card balance-card">
+            <h3>Saldo gotówki</h3>
+            <p class="saldo">{{ current_safe_balance }} PLN</p>
+        </div>
+    </div>
+
+    <div class="form-container">
+        <h3>Dodaj operację</h3>
+        <form method="POST">
+            <div class="form-group">
+                <label for="amount">Kwota:</label>
+                <input type="number" step="0.01" name="amount" required class="input-field" placeholder="Wpisz kwotę">
+            </div>
+            
+            <div class="form-group">
+                <label for="type">Typ operacji:</label>
+                <select name="type" class="input-field">
+                    <option value="wpłata">Wpłata do bankomatu</option>
+                    <option value="wypłata">Wypłata z bankomatu</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn">Dodaj operację</button>
+        </form>
+    </div>
+
+    <h3>Historia operacji</h3>
+    <table class="styled-table">
+        <thead>
+            <tr>
+                <th>Data</th>
+                <th>Typ</th>
+                <th>Kwota</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for transaction in transactions %}
+            <tr>
+                <td>{{ transaction.date }}</td>
+                <td class="{% if transaction.type == 'Sprzedaż' %}sale{% elif transaction.type == 'Wydatek' %}expense{% elif transaction.type == 'wypłata' %}withdraw{% else %}deposit{% endif %}">
+                    {{ transaction.type }}
+                </td>
+                <td>{{ transaction.amount }} PLN</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<style>
+    .container {
+        max-width: 900px;
+        margin: auto;
+        text-align: center;
+        padding: 20px;
+    }
+    .title {
+        font-size: 28px;
+        font-weight: bold;
+        margin-bottom: 20px;
+    }
+    .card-container {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 20px;
+    }
+    .card {
+        background: linear-gradient(135deg, #1e90ff, #007bff);
+        padding: 20px;
+        border-radius: 15px;
+        width: 60%;
+        box-shadow: 2px 2px 15px rgba(0, 0, 0, 0.2);
+        text-align: center;
+        color: white;
+    }
+    .saldo {
+        font-size: 26px;
+        font-weight: bold;
+        margin-top: 10px;
+    }
+    .form-container {
+        background: #f8f9fa;
+        padding: 25px;
+        border-radius: 10px;
+        box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+        margin-bottom: 25px;
+        text-align: left;
+    }
+    .form-group {
+        margin-bottom: 15px;
+    }
+    .input-field {
+        width: 100%;
+        padding: 12px;
+        margin: 8px 0;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+        font-size: 16px;
+    }
+    .btn {
+        background: #007bff;
+        color: white;
+        padding: 12px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        width: 100%;
+        font-size: 16px;
+    }
+    .btn:hover {
+        background: #0056b3;
+    }
+    .styled-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+    .styled-table th, .styled-table td {
+        border: 1px solid #ddd;
+        padding: 12px;
+        font-size: 16px;
+    }
+    .styled-table th {
+        background-color: #007bff;
+        color: white;
+    }
+    .styled-table tr:nth-child(even) {
+        background-color: #f2f2f2;
+    }
+    .sale { color: green; font-weight: bold; }
+    .expense { color: red; font-weight: bold; }
+    .withdraw { color: orange; font-weight: bold; }
+    .deposit { color: blue; font-weight: bold; }
+</style>
+{% endblock %}
