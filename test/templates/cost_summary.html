@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container">
+    <h2 class="title">Podsumowanie kosztów</h2>
+
+    <h3>Rok-miesiąc: {{ selected_year }}-{{ "%02d"|format(selected_month) }}</h3>
+    
+    <table class="styled-table">
+        <thead>
+            <tr>
+                <th>Kategoria</th>
+                <th>Podkategoria</th>
+                <th>Kwota</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for cat_id, cat_data in summary.items() %}
+            <!-- Wiersz z kategorią -->
+            <tr style="background:#e7f3ff;">
+                <td>{{ cat_data.name }}</td>
+                <td> -- </td>
+                <td>{{ "%.2f"|format(cat_data.total) }} PLN</td>
+            </tr>
+            <!-- Wiersze z podkategoriami -->
+            {% for sub_id, sub_data in cat_data.subcats.items() %}
+            <tr>
+                <td></td>
+                <td>{{ sub_data.name }}</td>
+                <td>{{ "%.2f"|format(sub_data.total) }} PLN</td>
+            </tr>
+            {% endfor %}
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<style>
+    .container {
+        max-width: 800px;
+        margin: auto;
+        text-align: center;
+        padding: 20px;
+    }
+    .title {
+        font-size: 28px;
+        font-weight: bold;
+        margin-bottom: 20px;
+    }
+    .styled-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+    .styled-table th, .styled-table td {
+        border: 1px solid #ddd;
+        padding: 12px;
+        font-size: 16px;
+        text-align: left;
+    }
+    .styled-table th {
+        background-color: #007bff;
+        color: white;
+    }
+    .styled-table tr:nth-child(even) {
+        background-color: #f2f2f2;
+    }
+</style>
+
+{% endblock %}

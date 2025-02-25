@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container">
+    <h2 class="title">Ustawienia kategorii</h2>
+
+    <!-- Formularz dodawania nowej kategorii -->
+    <div class="form-container">
+        <h3>Dodaj kategorię</h3>
+        <form method="POST">
+            <input type="hidden" name="new_category" value="1">
+            <div class="form-group">
+                <label for="category_name">Nazwa kategorii:</label>
+                <input type="text" name="category_name" class="input-field" required>
+            </div>
+            <button type="submit" class="btn">Dodaj kategorię</button>
+        </form>
+    </div>
+
+    <!-- Formularz dodawania nowej podkategorii -->
+    <div class="form-container" style="margin-top:20px;">
+        <h3>Dodaj podkategorię</h3>
+        <form method="POST">
+            <input type="hidden" name="new_subcategory" value="1">
+            <div class="form-group">
+                <label for="parent_category_id">Wybierz kategorię:</label>
+                <select name="parent_category_id" class="input-field">
+                    {% for cat in categories %}
+                    <option value="{{ cat.id }}">{{ cat.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="subcategory_name">Nazwa podkategorii:</label>
+                <input type="text" name="subcategory_name" class="input-field" required>
+            </div>
+            <button type="submit" class="btn">Dodaj podkategorię</button>
+        </form>
+    </div>
+
+    <h3 style="margin-top:30px;">Lista kategorii i podkategorii</h3>
+    <table class="styled-table">
+        <thead>
+            <tr>
+                <th>Kategoria</th>
+                <th>Podkategorie</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for cat in categories %}
+            <tr>
+                <td>{{ cat.name }}</td>
+                <td>
+                    {% if cat.subcategories %}
+                        <ul style="text-align:left;">
+                            {% for sub in cat.subcategories %}
+                            <li>{{ sub.name }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        Brak podkategorii
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<style>
+    .container {
+        max-width: 900px;
+        margin: auto;
+        text-align: center;
+        padding: 20px;
+    }
+    .title {
+        font-size: 28px;
+        font-weight: bold;
+        margin-bottom: 20px;
+    }
+    .form-container {
+        background: #f8f9fa;
+        padding: 25px;
+        border-radius: 10px;
+        box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+        margin-bottom: 25px;
+        text-align: left;
+    }
+    .input-field {
+        width: 100%;
+        padding: 12px;
+        margin: 8px 0;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+        font-size: 16px;
+    }
+    .btn {
+        background: #007bff;
+        color: white;
+        padding: 12px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        width: 100%;
+        font-size: 16px;
+    }
+    .btn:hover {
+        background: #0056b3;
+    }
+    .styled-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+    .styled-table th, .styled-table td {
+        border: 1px solid #ddd;
+        padding: 12px;
+        font-size: 16px;
+    }
+    .styled-table th {
+        background-color: #007bff;
+        color: white;
+    }
+    .styled-table tr:nth-child(even) {
+        background-color: #f2f2f2;
+    }
+</style>
+
+{% endblock %}
