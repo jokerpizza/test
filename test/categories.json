@@ -1,0 +1,61 @@
+{
+  "KONTO 30 %": [
+    "Księgowa",
+    "ZBK",
+    "Jata",
+    "Justus",
+    "ZAIKS",
+    "Papu",
+    "Artur",
+    "Kamil"
+  ],
+  "JEDZENIE": [
+    "Selgros",
+    "Food o'clock",
+    "FritoLay",
+    "Mięso J.Matlęga",
+    "Młyn Suwałki",
+    "Julius Meinl",
+    "Cornico",
+    "Piekarnia Czajczyk",
+    "Inne-paragony"
+  ],
+  "ALKOHOL": [
+    "Bozbi",
+    "United Beverages",
+    "Endorwina",
+    "Eurocash"
+  ],
+  "KOSZTY STAŁE": [
+    "Tauron",
+    "Fortum",
+    "E100",
+    "Paliwo inne",
+    "Stoart"
+  ],
+  "MARKETING": [
+    "Media Kings",
+    "Wydruki",
+    "Facebook"
+  ],
+  "OPAKOWANIA": [
+    "Paco",
+    "Papak"
+  ],
+  "PROWIZJE": [
+    "PYSZNE",
+    "UBER",
+    "GLOVO"
+  ],
+  "INNE": [
+    "Santander- piec",
+    "Traficar",
+    "Gaz- Rafał Solarz",
+    "Artykuły gospodarcze",
+    "Paczki",
+    "Wyposażenie/inwestycje",
+    "Materiały budowlane",
+    "Inne"
+  ],
+  "WYPŁATY PRACOWNIKÓW": []
+}
