@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block head %}
+  {{ super() }}
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h1>Sprzedaż</h1>
+    <button id="addSaleBtn" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addSaleModal">Dodaj sprzedaż</button>
+  </div>
+  <div class="row mb-4">
+    <div class="col-md-4">
+      <div class="card text-white bg-primary mb-3">
+        <div class="card-body">
+          <h5 class="card-title">Dzisiejsza suma</h5>
+          <p class="card-text display-6" id="todaySum">0</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card text-white bg-success mb-3">
+        <div class="card-body">
+          <h5 class="card-title">Suma ostatnich 7 dni</h5>
+          <p class="card-text display-6" id="weekSum">0</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card text-white bg-info mb-3">
+        <div class="card-body">
+          <h5 class="card-title">Miesięczna suma</h5>
+          <p class="card-text display-6" id="monthSum">0</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <table id="salesTable" class="display" style="width:100%">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Data</th>
+        <th>Gotówka</th>
+        <th>Przelew</th>
+        <th>Zapłacono</th>
+        <th>Akcje</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<!-- Add Sale Modal -->
+<div class="modal fade" id="addSaleModal" tabindex="-1">
+  <div class="modal-dialog">
+    <form id="addSaleForm" class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Dodaj nową sprzedaż</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label for="saleDate" class="form-label">Data</label>
+          <input type="date" id="saleDate" class="form-control" required>
+        </div>
+        <div class="mb-3">
+          <label for="saleGot" class="form-label">Gotówka</label>
+          <input type="number" id="saleGot" class="form-control" min="0" step="0.01" required>
+        </div>
+        <div class="mb-3">
+          <label for="salePrz" class="form-label">Przelew</label>
+          <input type="number" id="salePrz" class="form-control" min="0" step="0.01" required>
+        </div>
+        <div class="mb-3">
+          <label for="saleZap" class="form-label">Zapłacono</label>
+          <input type="number" id="saleZap" class="form-control" min="0" step="0.01" required>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="submit" class="btn btn-success">Zapisz</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Edit Sale Modal -->
+<div class="modal fade" id="editSaleModal" tabindex="-1">
+  <div class="modal-dialog">
+    <form id="editSaleForm" class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Edytuj sprzedaż</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="editSaleId">
+        <div class="mb-3">
+          <label for="editSaleDate" class="form-label">Data</label>
+          <input type="date" id="editSaleDate" class="form-control" required>
+        </div>
+        <div class="mb-3">
+          <label for="editSaleGot" class="form-label">Gotówka</label>
+          <input type="number" id="editSaleGot" class="form-control" min="0" step="0.01" required>
+        </div>
+        <div class="mb-3">
+          <label for="editSalePrz" class="form-label">Przelew</label>
+          <input type="number" id="editSalePrz" class="form-control" min="0" step="0.01" required>
+        </div>
+        <div class="mb-3">
+          <label for="editSaleZap" class="form-label">Zapłacono</label>
+          <input type="number" id="editSaleZap" class="form-control" min="0" step="0.01" required>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="submit" class="btn btn-warning">Aktualizuj</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+<script src="{{ url_for('static', filename='sales.js') }}"></script>
+{% endblock %}
