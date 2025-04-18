@@ -1,0 +1,46 @@
+
+{% extends "base.html" %}
+{% block content %}
+<h2 class="mb-4 text-center">Zarządzanie Użytkownikami i Dostępem do Podstron</h2>
+
+<div class="container">
+    <!-- Card for Managing Permissions -->
+    <div class="card">
+        <div class="card-header bg-warning text-dark">
+            Zarządzanie Dostępem do Podstron
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('manage_users') }}">
+                <table class="table table-striped">
+                    <thead class="table-dark">
+                        <tr>
+                            <th scope="col">Użytkownik</th>
+                            <th scope="col">Ustawienia</th>
+                            <th scope="col">Sprzedaż</th>
+                            <th scope="col">Koszty</th>
+                            <th scope="col">Status Finansowy</th>
+                            <th scope="col">Dashboard</th>
+                            <th scope="col">Podsumowanie Kosztów</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        <tr>
+                            <td>{{ user.username }}</td>
+                            {% for permission in ['settings', 'sales', 'costs', 'finance_status', 'dashboard', 'cost_summary'] %}
+                            <td>
+                                <input type="checkbox" name="permissions_{{ user.id }}" value="{{ permission }}"
+                                {% if permission in user.permissions %}checked{% endif %}>
+                            </td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <button type="submit" class="btn btn-success mt-3">Zapisz Uprawnienia</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
