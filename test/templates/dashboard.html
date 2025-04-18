@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block head %}
+  {{ super() }}
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <h1 class="mb-4">Dashboard Sprzedaży</h1>
+  <canvas id="dashboardChart" height="100"></canvas>
+</div>
+{% endblock %}
+
+{% block scripts %}
+  {{ super() }}
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      fetch('/api/dashboard-data')
+        .then(res=>res.json())
+        .then(json=>{
+          const ctx = document.getElementById('dashboardChart').getContext('2d');
+          new Chart(ctx, {
+            type: 'line',
+            data: { labels: json.labels, datasets:[{label:'Sprzedaż dzienna',data:json.data,fill:false,tension:0.3}] },
+            options:{ scales:{ x:{title:{display:true,text:'Dzień miesiąca'}}, y:{title:{display:true,text:'Kwota'}} }}
+          });
+        });
+    });
+  </script>
+{% endblock %}
