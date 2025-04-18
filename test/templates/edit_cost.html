@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container">
+  <h2>Edytuj Koszt</h2>
+  <form method="POST">
+    <div class="mb-3">
+      <label class="form-label">Data:</label>
+      <input type="date" name="date" class="form-control" value="{{ cost.date }}" required>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Kategoria główna:</label>
+      <select id="main_cat" name="main_category" class="form-select" required onchange="updateSubcats()">
+        <option value="">— wybierz —</option>
+        {% for mc in main_categories %}
+        <option value="{{ mc.id }}" {% if mc.id == selected_main_id %}selected{% endif %}>{{ mc.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Podkategoria:</label>
+      <select id="sub_cat" name="subcategory" class="form-select" required>
+        <option value="">— wybierz —</option>
+        {% for sc in main_categories|selectattr('id','equalto',selected_main_id)|first.subcategories %}
+        <option value="{{ sc.id }}" {% if sc.id == selected_sub_id %}selected{% endif %}>{{ sc.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Opis:</label>
+      <textarea name="description" class="form-control" required>{{ cost.description }}</textarea>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Kwota:</label>
+      <input type="number" name="amount" class="form-control" value="{{ cost.amount }}" required>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Sposób płatności:</label>
+      <select name="payment_method" class="form-select" required>
+        <option value="Gotówka" {% if cost.payment_method == 'Gotówka' %}selected{% endif %}>Gotówka</option>
+        <option value="Przelew" {% if cost.payment_method == 'Przelew' %}selected{% endif %}>Przelew</option>
+      </select>
+    </div>
+    <button type="submit" class="btn btn-primary">Zapisz zmiany</button>
+  </form>
+</div>
+
+<script>
+const subsMap = {
+{% for mc in main_categories %}
+  {{ mc.id }}: [
+    {% for sc in mc.subcategories %}
+    { id: {{ sc.id }}, name: "{{ sc.name }}" }{% if not loop.last %}, {% endif %}
+    {% endfor %}
+  ]{% if not loop.last %},{% endif %}
+{% endfor %}
+};
+
+function updateSubcats() {
+  const mainId = document.getElementById('main_cat').value;
+  const subSelect = document.getElementById('sub_cat');
+  subSelect.innerHTML = '<option value="">— wybierz —</option>';
+  if (!subsMap[mainId]) return;
+  subsMap[mainId].forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s.id;
+    opt.text = s.name;
+    subSelect.appendChild(opt);
+  });
+}
+
+document.addEventListener('DOMContentLoaded', updateSubcats);
+</script>
+{% endblock %}
