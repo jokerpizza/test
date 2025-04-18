@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Dodaj Koszt</h2>
+<form method="POST" action="{{ url_for('add_cost') }}">
+    <div class="mb-3">
+        <label>Data:</label>
+        <input type="date" name="date" class="form-control" required>
+    </div>
+    <div class="mb-3">
+        <label>Kategoria główna:</label>
+        <select id="main_cat" name="main_category" class="form-select" required onchange="updateSubcats()">
+            <option value="">— wybierz —</option>
+            {% for mc in main_categories %}
+            <option value="{{ mc.id }}">{{ mc.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="mb-3">
+        <label>Podkategoria:</label>
+        <select id="sub_cat" name="subcategory" class="form-select" required>
+            <option value="">— wybierz —</option>
+        </select>
+    </div>
+    <div class="mb-3">
+        <label>Opis:</label>
+        <textarea name="description" class="form-control" required></textarea>
+    </div>
+    <div class="mb-3">
+        <label>Kwota:</label>
+        <input type="number" name="amount" class="form-control" required>
+    </div>
+    <div class="mb-3">
+        <label>Sposób płatności:</label>
+        <select name="payment_method" class="form-select" required>
+            <option value="Gotówka">Gotówka</option>
+            <option value="Przelew">Przelew</option>
+        </select>
+    </div>
+    <button type="submit" class="btn btn-primary">Dodaj</button>
+</form>
+
+<script>
+const subsMap = {
+{% for mc in main_categories %}
+    {{ mc.id }}: [
+    {% for sc in mc.subcategories %}
+        { id: {{ sc.id }}, name: "{{ sc.name }}" }{% if not loop.last %}, {% endif %}
+    {% endfor %}
+    ]{% if not loop.last %},{% endif %}
+{% endfor %}
+};
+
+function updateSubcats() {
+    const mainId = document.getElementById('main_cat').value;
+    const subSelect = document.getElementById('sub_cat');
+    subSelect.innerHTML = '<option value="">— wybierz —</option>';
+    (subsMap[mainId] || []).forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.id;
+        opt.text = s.name;
+        subSelect.appendChild(opt);
+    });
+}
+</script>
+{% endblock %}
