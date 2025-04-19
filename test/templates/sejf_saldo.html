@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container py-4">
+  <h2 class="text-center mb-4">Sejf Saldo</h2>
+  <div class="row g-3 mb-4">
+    <div class="col-md-4">
+      <div class="card shadow-sm text-center">
+        <div class="card-body">
+          <i class="bi bi-wallet2 fs-1 text-primary mb-2"></i>
+          <h5 class="card-title">Saldo gotówki</h5>
+          <p id="currentBalance" class="fs-3 fw-bold">{{ current_safe_balance }} zł</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card shadow-sm text-center">
+        <div class="card-body">
+          <i class="bi bi-arrow-down-circle fs-1 text-success mb-2"></i>
+          <h6 class="text-muted">Wpłaty ({{ period_days }}d)</h6>
+          <p id="totalDeposits" class="fs-4">{{ total_deposits }} zł</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card shadow-sm text-center">
+        <div class="card-body">
+          <i class="bi bi-arrow-up-circle fs-1 text-danger mb-2"></i>
+          <h6 class="text-muted">Wypłaty ({{ period_days }}d)</h6>
+          <p id="totalWithdrawals" class="fs-4">{{ total_withdrawals }} zł</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="card mb-4 shadow-sm">
+    <div class="card-header">Saldo w czasie ({{ period_days }} dni)</div>
+    <div class="card-body p-0">
+      <div class="ratio ratio-16x9" style="max-height:300px;">
+        <canvas id="balanceChart"></canvas>
+      </div>
+    </div>
+  </div>
+  <div class="row g-3 mb-4">
+    <div class="col-md-6">
+      <div class="card shadow-sm p-3">
+        <h6>Filtruj transakcje</h6>
+        <form method="get" id="safeFilterForm" class="row g-2 align-items-end">
+          <div class="col-auto">
+            <label for="start" class="form-label">Od</label>
+            <input type="date" name="start_date" id="start" class="form-control" value="{{ start_date }}">
+          </div>
+          <div class="col-auto">
+            <label for="end" class="form-label">Do</label>
+            <input type="date" name="end_date" id="end" class="form-control" value="{{ end_date }}">
+          </div>
+          <div class="col-auto">
+            <button class="btn btn-primary">Pokaż</button>
+          </div>
+        </form>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card shadow-sm p-3">
+        <h6>Dodaj operację</h6>
+        <form method="post" id="safeAddForm" class="row g-2 align-items-end">
+          {{ csrf_token() }}
+          <div class="col-auto flex-grow-1">
+            <label for="amount" class="form-label">Kwota</label>
+            <input type="number" name="amount" id="amount" step="0.01" class="form-control" placeholder="100.00">
+          </div>
+          <div class="col-auto flex-grow-1">
+            <label for="type" class="form-label">Typ</label>
+            <select name="type" id="type" class="form-select">
+              <option value="wpłata">Wpłata</option>
+              <option value="wypłata">Wypłata</option>
+            </select>
+          </div>
+          <div class="col-auto">
+            <button type="submit" class="btn btn-success">Dodaj</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <h5>Historia operacji</h5>
+  <div class="table-responsive mb-4">
+    <table class="table table-striped">
+      <thead class="table-primary">
+        <tr>
+          <th>Data</th><th>Typ</th><th>Kwota</th><th>Saldo po trans.</th><th>Użytkownik</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in transactions %}
+        <tr>
+          <td>{{ t.date }}</td><td>{{ t.type }}</td><td>{{ "%.2f"|format(t.amount) }} zł</td><td>{{ "%.2f"|format(t.balance_after) }} zł</td><td>{{ t.user }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="card mb-4 shadow-sm">
+    <div class="card-header">Alerty Progowe Sejfu</div>
+    <div class="card-body">
+      <table class="table mb-3">
+        <thead><tr><th>Typ</th><th>Próg (zł)</th><th>Usuń</th></tr></thead>
+        <tbody>
+          {% for thr in thresholds %}
+          <tr>
+            <td>{{ thr.key }}</td><td>{{ "%.2f"|format(thr.value) }} zł</td>
+            <td><form method="post" action="{{ url_for('delete_threshold', id=thr.id) }}">{{ csrf_token() }}<button class="btn btn-sm btn-danger">Usuń</button></form></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <form method="post" action="{{ url_for('add_threshold') }}" class="row g-2 align-items-end">
+        {{ csrf_token() }}
+        <div class="col-auto flex-grow-1"><input name="type" class="form-control" placeholder="Typ alertu"></div>
+        <div class="col-auto flex-grow-1"><input name="value" type="number" step="0.01" class="form-control" placeholder="Próg (zł)"></div>
+        <div class="col-auto"><button type="submit" class="btn btn-primary">Dodaj Alert Progowy</button></div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const history = {{ history|tojson }};
+  const ctx = document.getElementById('balanceChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: history.map(h => h.date),
+      datasets: [{ label: 'Saldo', data: history.map(h => h.balance), fill: true, tension: 0.3 }]
+    },
+    options: { responsive: true, maintainAspectRatio: false }
+  });
+</script>
+{% endblock %}
