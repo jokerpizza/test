@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+
+
+{% block content %}
+
+  <style>
+    :root {
+      --p1: #ffadad;
+      --p2: #ffd6a5;
+      --p3: #fdffb6;
+      --p4: #caffbf;
+      --p5: #9bf6ff;
+      --p6: #a0c4ff;
+      --p7: #bdb2ff;
+    }
+    .row.g-4 > div:nth-child(7n+1) .card-header { background-color: var(--p1); }
+    .row.g-4 > div:nth-child(7n+2) .card-header { background-color: var(--p2); }
+    .row.g-4 > div:nth-child(7n+3) .card-header { background-color: var(--p3); }
+    .row.g-4 > div:nth-child(7n+4) .card-header { background-color: var(--p4); }
+    .row.g-4 > div:nth-child(7n+5) .card-header { background-color: var(--p5); }
+    .row.g-4 > div:nth-child(7n+6) .card-header { background-color: var(--p6); }
+    .row.g-4 > div:nth-child(7n+7) .card-header { background-color: var(--p7); }
+
+    .card-header {
+      color: #333;
+      transition: filter .3s ease;
+    }
+    .card:hover .card-header {
+      filter: brightness(1.1);
+    }
+  </style>
+
+<div class="container py-5">
+  <h1 class="mb-4">Kategorie Twoich Wydatków</h1>
+  <button class="btn btn-success mb-4" onclick="openAddMainModal()">
+    <i class="bi bi-plus-circle me-1"></i> Nowa kategoria
+  </button>
+  <div id="categories-container" class="row g-4"></div>
+</div>
+
+<!-- Main Category Modal -->
+<div class="modal fade" id="mainModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form id="mainForm">
+        <div class="modal-header">
+          <h5 class="modal-title" id="mainModalLabel">Kategoria główna</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="mainId">
+          <div class="mb-3">
+            <label for="mainName" class="form-label">Nazwa</label>
+            <input type="text" class="form-control" id="mainName" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary">Zapisz</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Subcategory Modal -->
+<div class="modal fade" id="subModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form id="subForm">
+        <div class="modal-header">
+          <h5 class="modal-title" id="subModalLabel">Podkategoria</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="subId">
+          <input type="hidden" id="subParentId">
+          <div class="mb-3">
+            <label for="subName" class="form-label">Nazwa</label>
+            <input type="text" class="form-control" id="subName" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary">Zapisz</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='settings.js') }}"></script>
+{% endblock %}
