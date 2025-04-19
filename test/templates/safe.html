@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4">
+  <!-- 1) Podsumowanie salda -->
+  <div class="row mb-4">
+    <div class="col-md-4 mb-3">
+      <div class="card shadow-sm">
+        <div class="card-body text-center">
+          <i class="bi bi-wallet2 fs-1 text-primary mb-2"></i>
+          <h5 class="card-title">Saldo Sejfu</h5>
+          <h2 id="currentBalance" class="fw-bold">0 zł</h2>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4 mb-3">
+      <div class="card shadow-sm">
+        <div class="card-body text-center">
+          <i class="bi bi-arrow-down-circle fs-1 text-success mb-2"></i>
+          <h6 class="text-muted">Wpłaty (30d)</h6>
+          <h4 id="totalDeposits">0 zł</h4>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4 mb-3">
+      <div class="card shadow-sm">
+        <div class="card-body text-center">
+          <i class="bi bi-arrow-up-circle fs-1 text-danger mb-2"></i>
+          <h6 class="text-muted">Wypłaty (30d)</h6>
+          <h4 id="totalWithdrawals">0 zł</h4>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2) Wykres salda w czasie -->
+  <div class="card mb-4 shadow-sm">
+    <div class="card-header">Saldo w czasie (30 dni)</div>
+    <div class="card-body p-0">
+      <div class="ratio ratio-16x9" style="max-height:300px;">
+        <canvas id="balanceChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3) Filtry i akcje -->
+  <div class="row mb-4">
+    <div class="col-md-6">
+      <div class="card shadow-sm p-3">
+        <h6>Filtruj transakcje</h6>
+        <form id="safeFilterForm" class="row g-2 align-items-end">
+          <div class="col-auto">
+            <label for="filterStart" class="form-label">Od dnia:</label>
+            <input type="date" id="filterStart" class="form-control"/>
+          </div>
+          <div class="col-auto">
+            <label for="filterEnd" class="form-label">Do dnia:</label>
+            <input type="date" id="filterEnd" class="form-control"/>
+          </div>
+          <div class="col-auto">
+            <button id="filterBtn" class="btn btn-primary">Pokaż</button>
+          </div>
+        </form>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card shadow-sm p-3">
+        <h6>Dodaj operację</h6>
+        <form id="safeAddForm" class="row g-2">
+          <div class="col-auto flex-grow-1">
+            <label for="addAmount" class="form-label">Kwota:</label>
+            <input type="number" step="0.01" id="addAmount" class="form-control" placeholder="Wpisz kwotę"/>
+          </div>
+          <div class="col-auto flex-grow-1">
+            <label for="addType" class="form-label">Typ operacji:</label>
+            <select id="addType" class="form-select">
+              <option value="deposit">Wpłata</option>
+              <option value="withdrawal">Wypłata</option>
+            </select>
+          </div>
+          <div class="col-auto align-self-end">
+            <button class="btn btn-success">Dodaj operację</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4) Historia operacji -->
+  <h5 class="mt-4">Historia operacji</h5>
+  <div class="table-responsive">
+    <table class="table table-striped">
+      <thead class="table-primary">
+        <tr>
+          <th>Data</th>
+          <th>Typ</th>
+          <th>Kwota</th>
+          <th>Saldo po transakcji</th>
+          <th>Użytkownik</th>
+        </tr>
+      </thead>
+      <tbody id="txTable"></tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{{ url_for('static', filename='js/safe.js') }}"></script>
+{% endblock %}

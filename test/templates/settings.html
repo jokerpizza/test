@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container py-4">
+  <h3>Ustawienia</h3>
+  <!-- ... istniejące ustawienia kategorii ... -->
+
+  <div class="card mb-4 shadow-sm">
+    <div class="card-header">Alerty Progowe Sejfu</div>
+    <div class="card-body">
+      <table class="table mb-3">
+        <thead>
+          <tr><th>Typ Alertu</th><th>Próg (zł)</th><th>Akcje</th></tr>
+        </thead>
+        <tbody id="thresholdsTable"></tbody>
+      </table>
+      <button class="btn btn-primary" id="addThresholdBtn">
+        <i class="bi bi-plus-lg"></i> Dodaj Alert Progowy
+      </button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/settings.js') }}"></script>
+{% endblock %}
