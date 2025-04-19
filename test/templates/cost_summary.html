@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mx-auto p-6">
+  <!-- Predefiniowane okresy + filtr -->
+  <div class="bg-white rounded-2xl shadow p-4 mb-6">
+    <div class="flex flex-wrap gap-3 mb-4">
+      <button data-period="week" class="periodBtn bg-indigo-100 text-indigo-600 px-4 py-2 rounded-lg">Ostatni tydzień</button>
+      <button data-period="month" class="periodBtn bg-indigo-100 text-indigo-600 px-4 py-2 rounded-lg">Ostatni miesiąc</button>
+      <button data-period="quarter" class="periodBtn bg-indigo-100 text-indigo-600 px-4 py-2 rounded-lg">Ostatni kwartał</button>
+      <button data-period="year" class="periodBtn bg-indigo-100 text-indigo-600 px-4 py-2 rounded-lg">Ten rok</button>
+    </div>
+    <div class="flex flex-col md:flex-row items-end space-y-4 md:space-y-0 md:space-x-4">
+      <div><label for="startDate" class="block text-sm font-medium text-gray-700">Od:</label><input type="date" id="startDate" class="mt-1 p-2 rounded-lg border-gray-300 focus:border-indigo-500 focus:ring focus:ring-indigo-200"/></div>
+      <div><label for="endDate" class="block text-sm font-medium text-gray-700">Do:</label><input type="date" id="endDate" class="mt-1 p-2 rounded-lg border-gray-300 focus:border-indigo-500 focus:ring focus:ring-indigo-200"/></div>
+      <button id="filterBtn" class="bg-indigo-600 text-white px-4 py-2 rounded-lg">Filtruj</button>
+    </div>
+  </div>
+  <!-- Karty metryk -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+    <div class="bg-white rounded-2xl shadow p-6 flex items-center">
+      <svg class="w-10 h-10 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 12h2m-1-1v2m8-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      <div class="ml-4"><p class="text-sm uppercase text-gray-500">Wybrane okres</p><p id="rangeTotal" class="text-2xl font-bold">0 zł</p></div>
+    </div>
+    <div class="bg-white rounded-2xl shadow p-6 flex items-center">
+      <svg class="w-10 h-10 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 6h18M3 14h18M3 18h18"/></svg>
+      <div class="ml-4"><p class="text-sm uppercase text-gray-500">Porównanie</p><p id="compareDiff" class="text-2xl font-semibold">0 zł</p></div>
+    </div>
+    <div class="bg-white rounded-2xl shadow p-6 flex items-center">
+      <svg class="w-10 h-10 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      <div class="ml-4"><p class="text-sm uppercase text-gray-500">Zmiana (%)</p><p id="comparePct" class="text-2xl font-semibold">0%</p></div>
+    </div>
+  </div>
+  <!-- Wykresy -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <div class="bg-white rounded-2xl shadow p-6"><h2 class="text-lg font-semibold mb-4">Wydatki wg kategorii</h2><canvas id="pieChart"></canvas></div>
+    <div class="bg-white rounded-2xl shadow p-6"><h2 class="text-lg font-semibold mb-4">Porównanie kategorii</h2><canvas id="compareChart"></canvas></div>
+  </div>
+  <!-- Tabela szczegółów -->
+  <div class="bg-white rounded-2xl shadow p-6 overflow-auto">
+    <h2 class="text-lg font-semibold mb-4">Szczegóły podkategorii</h2>
+    <table id="detailsTable" class="min-w-full divide-y divide-gray-200"><thead><tr><th class="px-4 py-2 text-left text-sm font-medium text-gray-500 uppercase">Kategoria</th><th class="px-4 py-2 text-left text-sm font-medium text-gray-500 uppercase">Kwota</th><th class="px-4 py-2 text-left text-sm font-medium text-gray-500 uppercase">Porównanie</th></tr></thead><tbody class="divide-y divide-gray-100"></tbody></table>
+  </div>
+</div>
+<script src="{{ url_for('static', filename='js/cost_summary.js') }}"></script>
+{% endblock %}
