@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+<h2 class="mb-4">Edytuj koszt</h2>
+<form method="POST" action="{{ url_for('edit_cost', cost_id=cost.id) }}">
+  <div class="mb-3"><label for="date" class="form-label">Data</label><input type="date" id="date" name="date" class="form-control" value="{{ cost.date }}"></div>
+  <div class="mb-3"><label for="main_category" class="form-label">Kategoria główna</label><select id="main_category" name="main_category" class="form-select">{% for mc in main_categories %}<option value="{{ mc.id }}" {% if mc.id==selected_main_id %}selected{% endif %}>{{ mc.name }}</option>{% endfor %}</select></div>
+  {% set selected_main = main_categories|selectattr("id","equalto",selected_main_id)|first %}
+  <div class="mb-3"><label for="subcategory" class="form-label">Podkategoria</label><select id="subcategory" name="subcategory" class="form-select">{% for sc in selected_main.subcategories %}<option value="{{ sc.id }}" {% if sc.id==selected_sub_id %}selected{% endif %}>{{ sc.name }}</option>{% endfor %}</select></div>
+  <div class="mb-3"><label for="description" class="form-label">Opis</label><input type="text" id="description" name="description" class="form-control" value="{{ cost.description }}"></div>
+  <div class="mb-3"><label for="amount" class="form-label">Kwota</label><input type="number" step="0.01" id="amount" name="amount" class="form-control" value="{{ cost.amount }}"></div>
+  <div class="mb-4"><label class="form-label">Sposób płatności</label><div class="form-check"><input class="form-check-input" type="radio" name="payment_method" id="cash" value="Gotówka" {% if cost.payment_method=='Gotówka'%}checked{% endif %}><label class="form-check-label" for="cash">Gotówka</label></div><div class="form-check"><input class="form-check-input" type="radio" name="payment_method" id="transfer" value="Przelew" {% if cost.payment_method=='Przelew'%}checked{% endif %}><label class="form-check-label" for="transfer">Przelew</label></div></div>
+  <button type="submit" class="btn btn-primary me-2">Zapisz zmiany</button><a href="{{ url_for('costs_list') }}" class="btn btn-outline-secondary">Anuluj</a>
+</form>
+{% endblock %}
