@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container my-4">
+  <div class="d-flex flex-wrap gap-2 mb-3">
+    <button class="btn btn-outline-primary" data-period="week">Ostatni tydzień</button>
+    <button class="btn btn-outline-primary" data-period="month">Ostatni miesiąc</button>
+    <button class="btn btn-outline-primary" data-period="quarter">Ostatni kwartał</button>
+    <button class="btn btn-outline-primary" data-period="year">Ten rok</button>
+  </div>
+  <form class="row g-2 align-items-end mb-4" onsubmit="return false;">
+    <div class="col-auto">
+      <label for="startDate" class="form-label">Zakres A – Od:</label>
+      <input type="date" id="startDate" class="form-control"/>
+    </div>
+    <div class="col-auto">
+      <label for="endDate" class="form-label">Do:</label>
+      <input type="date" id="endDate" class="form-control"/>
+    </div>
+    <div class="col-auto">
+      <label for="cmpStartDate" class="form-label">Zakres B – Od:</label>
+      <input type="date" id="cmpStartDate" class="form-control"/>
+    </div>
+    <div class="col-auto">
+      <label for="cmpEndDate" class="form-label">Do:</label>
+      <input type="date" id="cmpEndDate" class="form-control"/>
+    </div>
+    <div class="col-auto">
+      <button id="filterBtn" class="btn btn-primary">Filtruj</button>
+    </div>
+  </form>
+
+  <div class="row mb-4">
+    <div class="col-md-3 mb-3">
+      <div class="card shadow-sm">
+        <div class="card-body d-flex align-items-center">
+          <i class="bi bi-calendar-range text-primary fs-1 me-3"></i>
+          <div>
+            <h6 class="card-subtitle text-muted">Suma A</h6>
+            <h4 id="sumA" class="card-title mb-0">0 zł</h4>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 mb-3">
+      <div class="card shadow-sm">
+        <div class="card-body d-flex align-items-center">
+          <i class="bi bi-calendar-range text-success fs-1 me-3"></i>
+          <div>
+            <h6 class="card-subtitle text-muted">Suma B</h6>
+            <h4 id="sumB" class="card-title mb-0">0 zł</h4>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 mb-3">
+      <div class="card shadow-sm">
+        <div class="card-body d-flex align-items-center">
+          <i class="bi bi-arrow-left-right text-info fs-1 me-3"></i>
+          <div>
+            <h6 class="card-subtitle text-muted">Różnica (A−B)</h6>
+            <h4 id="diffAB" class="card-title mb-0">0 zł</h4>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 mb-3">
+      <div class="card shadow-sm">
+        <div class="card-body d-flex align-items-center">
+          <i class="bi bi-percent text-danger fs-1 me-3"></i>
+          <div>
+            <h6 class="card-subtitle text-muted">Zmiana %</h6>
+            <h4 id="pctAB" class="card-title mb-0">0 %</h4>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row mb-4">
+    <div class="col-lg-6 mb-4">
+      <div class="card shadow-sm">
+        <div class="card-header">Wydatki wg kategorii (A)</div>
+        <div class="card-body"><canvas id="pieChart"></canvas></div>
+      </div>
+    </div>
+    <div class="col-lg-6 mb-4">
+      <div class="card shadow-sm">
+        <div class="card-header">Porównanie kategorii (A vs B)</div>
+        <div class="card-body"><canvas id="compareChart"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mb-2">
+    <input type="text" id="searchInput" class="form-control" placeholder="Szukaj kategorii..."/>
+  </div>
+
+  <div class="card shadow-sm">
+    <div class="card-header">Szczegóły kategorii</div>
+    <div class="card-body p-0">
+      <table class="table mb-0">
+        <thead class="table-light"><tr>
+          <th>Kategoria</th><th>A (zł)</th><th>B (zł)</th><th>Δ (zł)</th>
+        </tr></thead>
+        <tbody id="detailsTable"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{{ url_for('static', filename='js/cost_summary.js') }}"></script>
+{% endblock %}
