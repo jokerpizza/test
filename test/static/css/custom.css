@@ -1,0 +1,11 @@
+:root {
+  --primary: #4f46e5;
+  --primary-hover: #4338ca;
+  --surface: #ffffff;
+  --surface-dark: #18181b;
+  --text: #1f2937;
+}
+body {
+  font-family:'Inter',system-ui,sans-serif;
+}
+.hero img {max-width:100%;height:auto;}
