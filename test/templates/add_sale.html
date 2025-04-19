@@ -1,0 +1,24 @@
+
+{% extends "base.html" %}
+{% block content %}
+<h2>Dodaj Sprzedaż</h2>
+<form method="POST">
+  <div class="mb-3">
+    <label for="date" class="form-label">Data</label>
+    <input type="date" class="form-control" id="date" name="date" value="{{ today_date }}" required>
+  </div>
+  <div class="mb-3">
+    <label for="dine_in" class="form-label">Gotówka (zł)</label>
+    <input type="number" step="0.01" class="form-control" id="dine_in" name="dine_in" required>
+  </div>
+  <div class="mb-3">
+    <label for="delivery" class="form-label">Karta (zł)</label>
+    <input type="number" step="0.01" class="form-control" id="delivery" name="delivery" required>
+  </div>
+  <div class="mb-3">
+    <label for="other" class="form-label">Zapłacono (zł)</label>
+    <input type="number" step="0.01" class="form-control" id="other" name="other" required>
+  </div>
+  <button type="submit" class="btn btn-primary">Zapisz</button>
+</form>
+{% endblock %}
