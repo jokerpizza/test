@@ -1,0 +1,48 @@
+
+:root {
+  --primary: #4f46e5;
+  --primary-hover: #4338ca;
+  --surface: #ffffff;
+  --surface-dark: #18181b;
+  --text: #1f2937;
+}
+.dark {
+  --surface: var(--surface-dark);
+  --text: #f3f4f6;
+  background: var(--surface-dark);
+}
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  color: var(--text);
+  background: var(--surface);
+  transition: background .3s, color .3s;
+}
+.glassy-nav {
+  backdrop-filter: blur(10px);
+  background: rgba(24,24,27,.85);
+}
+.btn-primary {
+  background: var(--primary);
+  border: none;
+}
+.btn-primary:hover {background: var(--primary-hover);}
+.hero {min-height:clamp(200px,40vh,500px);display:flex;align-items:center;padding:3rem 0}
+.hero--login{min-height:30vh;padding:2rem 0}
+.hover-lift {transition: transform .25s, box-shadow .25s;}
+.hover-lift:hover {transform: translateY(-4px); box-shadow: 0 1rem 3rem rgba(0,0,0,.175)!important;}
+.dark .card {background: #212124; color: #f3f4f6;}
+.dark .glassy-nav {background: rgba(24,24,27,.95);}
+.table thead{background:#f3f4f6}
+.badge-cash{background:#22c55e}
+.badge-transfer{background:#0ea5e9}
+.card:hover{box-shadow:0 1rem 2rem rgba(0,0,0,.1);transform:translateY(-4px);transition:.2s}
+.offcanvas{--bs-offcanvas-width:320px}
+
+
+.fade-in {
+    animation: fadeInSub 0.5s ease-in-out;
+}
+@keyframes fadeInSub {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
