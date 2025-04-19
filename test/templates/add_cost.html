@@ -1,0 +1,98 @@
+
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Dodaj koszt</h2>
+    <div class="bg-light p-3 rounded shadow-sm">
+        <div><small>W tym miesiącu wydałeś:</small></div>
+        <div><strong style="font-size: 1.2em; color: #007bff;">{{ total_monthly_cost }} zł</strong></div>
+    </div>
+</div>
+
+<form method="POST" action="{{ url_for('add_cost') }}">
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <label>Data:</label>
+            <input type="date" name="date" class="form-control" required>
+        </div>
+        <div class="col-md-6">
+            <label>Kwota:</label>
+            <input type="number" name="amount" step="0.01" class="form-control" required>
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <label>Kategoria główna:</label>
+        <div class="d-flex flex-wrap gap-2" id="main_category_buttons">
+            {% for mc in main_categories %}
+                <button type="button" class="btn btn-light border category-btn" data-id="{{ mc.id }}">
+                    {{ mc.emoji or '' }} {{ mc.name }}
+                </button>
+            {% endfor %}
+        </div>
+        <input type="hidden" name="main_category" id="main_category_input" required>
+    </div>
+
+    <div class="mb-3">
+        <label>Podkategoria:</label>
+        <div class="d-flex flex-wrap gap-2" id="subcategory_buttons"></div>
+        <input type="hidden" name="subcategory" id="subcategory_input" required>
+    </div>
+
+    <div class="mb-3">
+        <label>Opis:</label>
+        <textarea name="description" class="form-control" required></textarea>
+    </div>
+
+    <div class="mb-3">
+        <label>Sposób płatności:</label>
+        <select name="payment_method" class="form-select" required>
+            <option value="Gotówka">Gotówka</option>
+            <option value="Przelew">Przelew</option>
+        </select>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Zapisz koszt</button>
+</form>
+
+<script>
+    const mainButtons = document.querySelectorAll('.category-btn');
+    const mainInput = document.getElementById('main_category_input');
+    const subButtonsWrapper = document.getElementById('subcategory_buttons');
+    const subInput = document.getElementById('subcategory_input');
+
+    const subsMap = {
+        {% for mc in main_categories %}
+        "{{ mc.id }}": [
+            {% for sc in mc.subcategories %}
+            { id: "{{ sc.id }}", name: "{{ sc.name }}"{% if sc.emoji %}, emoji: "{{ sc.emoji }}"{% endif %} }{% if not loop.last %},{% endif %}
+            {% endfor %}
+        ]{% if not loop.last %},{% endif %}
+        {% endfor %}
+    };
+
+    mainButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            mainButtons.forEach(b => b.classList.remove('btn-primary'));
+            btn.classList.add('btn-primary');
+            mainInput.value = btn.dataset.id;
+
+            const subs = subsMap[btn.dataset.id] || [];
+            subButtonsWrapper.innerHTML = '';
+            subInput.value = '';
+            subs.forEach(sub => {
+                const sb = document.createElement('button');
+                sb.type = 'button';
+                sb.className = 'btn btn-outline-secondary sub-btn me-2 mb-2';
+                sb.textContent = (sub.emoji || '') + ' ' + sub.name;
+                sb.onclick = () => {
+                    subInput.value = sub.id;
+                    document.querySelectorAll('.sub-btn').forEach(b => b.classList.remove('btn-success'));
+                    sb.classList.add('btn-success');
+                };
+                subButtonsWrapper.appendChild(sb);
+            });
+        });
+    });
+</script>
+{% endblock %}
