@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container py-5">
+  <div class="row g-4">
+    <!-- LEFT: Form & Categories -->
+    <div class="col-lg-8">
+      <h2 class="mb-4 text-secondary">Dodaj koszt</h2>
+      <div class="row g-3 mb-4" id="categoryTiles">
+        {% for main in main_categories %}
+        <div class="col-6 col-md-4">
+          <div class="card category-tile text-center p-3" data-cat="{{ main.name }}">
+            <div class="display-4 text-primary"><i class="bi bi-{{ main.icon }}"></i></div>
+            <div>{{ main.name }}</div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      <form id="addCostForm" class="form-panel" method="POST" action="{{ url_for('add_cost') }}">
+        <div class="mb-3">
+          <label class="form-label">Wybrana kategoria:</label>
+          <input type="text" id="selectedCategory" name="category" class="form-control" readonly>
+        </div>
+        <div class="mb-3">
+          <label for="subcategory" class="form-label">Podkategoria</label>
+          <select id="subcategory" name="subcategory" class="form-select"></select>
+        </div>
+        <div class="mb-3">
+          <label for="description" class="form-label">Opis</label>
+          <input type="text" id="description" name="description" class="form-control" placeholder="np. Zakup warzyw">
+        </div>
+        <div class="row g-3">
+          <div class="col-md-4"><label for="date" class="form-label">Data</label><input type="date" id="date" name="date" class="form-control" value="{{ today }}"></div>
+          <div class="col-md-4"><label for="amount" class="form-label">Kwota (zł)</label><input type="number" step="0.01" id="amount" name="amount" class="form-control"></div>
+          <div class="col-md-4"><label class="form-label">Płatność</label><select name="payment_method" class="form-select"><option value="Gotówka">Gotówka</option><option value="Przelew">Przelew</option></select></div>
+        </div>
+        <div class="mt-4 text-end"><button type="submit" class="btn btn-primary">Zapisz koszt</button></div>
+      </form>
+      <!-- Quick Templates -->
+      <div class="quick-templates mt-5">
+        <h5 class="mb-3 text-secondary">Szybkie szablony</h5>
+        <div class="row g-3">
+          <div class="col-6 col-md-3">
+            <div class="card text-center p-3" data-template="Kawa z ekspresu">
+              <i class="bi bi-cup-straw display-6 text-primary"></i>
+              <p class="mt-2 small">Kawa</p>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="card text-center p-3" data-template="Paliwo 95">
+              <i class="bi bi-droplet display-6 text-primary"></i>
+              <p class="mt-2 small">Paliwo</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- RIGHT: Dashboard Panel -->
+    <div class="col-lg-4">
+      <div class="dashboard-panel">
+        <h6 class="text-secondary mb-3">Podsumowanie miesiąca</h6>
+        <canvas id="sparkline" height="100"></canvas>
+        <p class="mt-3 mb-1">Wydano w bieżącym miesiącu:</p>
+        <h3 class="fw-bold">{{ summary_month }} zł</h3>
+        <hr>
+        <p class="small text-muted mb-1">Średnia dzienna:</p>
+        <p class="fw-semibold">{{ average_daily }} zł</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const tiles = document.querySelectorAll('.category-tile');
+  const form = document.getElementById('addCostForm');
+  const selectedField = document.getElementById('selectedCategory');
+  const subSelect = document.getElementById('subcategory');
+
+  const subs = {{ categories_json|safe }};
+
+  tiles.forEach(tile => {
+    tile.addEventListener('click', () => {
+      tiles.forEach(t => t.classList.remove('selected'));
+      tile.classList.add('selected');
+      selectedField.value = tile.dataset.cat;
+      const options = subs[tile.dataset.cat] || [];
+      subSelect.innerHTML = options.map(o => `<option>\${o}</option>`).join('');
+      form.classList.add('active');
+      subSelect.focus();
+    });
+  });
+
+  document.querySelectorAll('.quick-templates .card').forEach(card => {
+    card.addEventListener('click', () => {
+      document.getElementById('description').value = card.dataset.template;
+      document.getElementById('amount').focus();
+    });
+  });
+
+  const ctx = document.getElementById('sparkline').getContext('2d');
+  new Chart(ctx, {
+    type: 'line',
+    data: { labels: {{ spark_labels|safe }}, datasets: [{ data: {{ spark_data|safe }}, fill: false, borderColor: 'var(--primary)', tension: 0.3 }] },
+    options: { plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { display: false } }, elements: { point: { radius: 0 } } }
+  });
+</script>
+{% endblock %}
