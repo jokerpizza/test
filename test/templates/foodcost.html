@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% block head %}
+<style>
+  .fc-card { background-color: #1e1e2f; color: #e0e0f0; border: none; border-radius: 0.75rem; }
+  .fc-input { background: #2a2a40; color: #e0e0f0; border: 1px solid #3a3a50; }
+  .fc-input:focus { box-shadow: 0 0 0 0.2rem rgba(100,200,200,0.5); }
+  .fc-btn { background-color: #38b2ac; color: #fff; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2 class="text-light mb-4">Food Cost</h2>
+  <ul class="nav nav-pills mb-4">
+    <li class="nav-item">
+      <a class="nav-link text-light {% if tab=='products' %}active{% endif %}" href="{{ url_for('foodcost', tab='products') }}">Produkty</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link text-light {% if tab=='dishes' %}active{% endif %}" href="{{ url_for('foodcost', tab='dishes') }}">Dania</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link text-light {% if tab=='analysis' %}active{% endif %}" href="{{ url_for('foodcost', tab='analysis') }}">Analiza</a>
+    </li>
+  </ul>
+
+  {% if tab=='products' %}
+    <div class="card fc-card p-4 mb-4">
+      <h4 class="text-light">Dodaj produkt</h4>
+      <form method="POST" action="{{ url_for('add_product') }}">
+        <div class="mb-3">
+          <input name="name" class="form-control fc-input" placeholder="Nazwa produktu" required>
+        </div>
+        <div class="mb-3">
+          <input name="price_per_kg" type="number" step="0.01" class="form-control fc-input" placeholder="Cena za kg" required>
+        </div>
+        <button class="btn fc-btn">Dodaj</button>
+      </form>
+    </div>
+    <div class="card fc-card p-4">
+      <h4 class="text-light">Lista produktów</h4>
+      <table class="table table-dark table-striped">
+        <thead>
+          <tr><th>Nazwa</th><th>Cena/kg</th></tr>
+        </thead>
+        <tbody>
+          {% for p in products %}
+          <tr><td>{{ p.name }}</td><td>{{ '%.2f'|format(p.price_per_kg) }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+  {% elif tab=='dishes' %}
+    <div class="card fc-card p-4 mb-4">
+      <h4 class="text-light">Dodaj danie</h4>
+      <form id="dish-form" method="POST" action="{{ url_for('add_dish') }}">
+        <div class="mb-3">
+          <input name="name" class="form-control fc-input" placeholder="Nazwa dania" required>
+        </div>
+        <div class="mb-3">
+          <input name="sale_price" type="number" step="0.01" class="form-control fc-input" placeholder="Cena sprzedaży" required>
+        </div>
+        <h5 class="text-light">Receptura</h5>
+        <div id="recipe-items" class="mb-3"></div>
+        <button type="button" class="btn btn-link text-info" id="add-item">+ Dodaj składnik</button>
+        <br><button class="btn fc-btn mt-3">Dodaj danie</button>
+      </form>
+    </div>
+    <div class="card fc-card p-4">
+      <h4 class="text-light">Lista dań</h4>
+      <table class="table table-dark table-striped">
+        <thead>
+          <tr><th>Nazwa</th><th>Cena</th></tr>
+        </thead>
+        <tbody>
+          {% for d in dishes %}
+          <tr><td>{{ d.name }}</td><td>{{ '%.2f'|format(d.sale_price) }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+  {% else %}
+    <div class="row">
+      {% for a in analysis %}
+      <div class="col-md-4 mb-4">
+        <div class="card fc-card text-center p-4">
+          <h5 class="text-light">{{ a.dish }}</h5>
+          <h2 class="display-5 text-info">{{ '%.1f'|format(a.pct) }}%</h2>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+</div>
+
+<template id="recipe-item-template">
+  <div class="d-flex mb-2">
+    <select name="product_id_INDEX" class="form-select me-2 fc-input" required>
+      {% for p in products %}
+      <option value="{{ p.id }}">{{ p.name }}</option>
+      {% endfor %}
+    </select>
+    <input name="weight_kg_INDEX" type="number" step="0.01"
+           class="form-control me-2 fc-input" placeholder="kg" required>
+    <button type="button" class="btn btn-sm btn-danger remove-item">✕</button>
+  </div>
+</template>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  let idx = 0;
+  const tmpl = document.getElementById('recipe-item-template').innerHTML;
+  const container = document.getElementById('recipe-items');
+  document.getElementById('add-item').addEventListener('click', () => {
+    container.insertAdjacentHTML('beforeend', tmpl.replace(/_INDEX/g, `_${idx}`));
+    idx++;
+  });
+  container.addEventListener('click', e => {
+    if (e.target.matches('.remove-item')) {
+      e.target.closest('div.d-flex').remove();
+    }
+  });
+</script>
+{% endblock %}
