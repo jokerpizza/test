@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex flex-wrap align-items-center justify-content-between mb-4 gap-3">
+  <h2 class="mb-0 fw-bold text-secondary"><i class="bi bi-wallet2 me-2"></i>Koszty</h2>
+  <div class="d-flex gap-2">
+    <button class="btn btn-outline-secondary" data-bs-toggle="offcanvas" data-bs-target="#filters"><i class="bi bi-funnel me-1"></i> Filtry</button>
+    <a id="clearFiltersBtn" class="btn btn-outline-secondary" href="{{ url_for('costs_list') }}"><i class="bi bi-x-circle me-1"></i> Wyczyść filtry</a>
+    <a class="btn btn-primary" href="{{ url_for('add_cost') }}"><i class="bi bi-plus-lg me-1"></i> Dodaj koszt</a>
+  </div>
+</div>
+<div class="card border-0 shadow-sm rounded-4">
+  <div class="card-body p-0"><div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="text-nowrap"><tr><th>Data</th><th>Kategoria</th><th>Opis</th><th class="text-end">Kwota (zł)</th><th>Płatność</th><th class="text-end">Akcje</th></tr></thead>
+      <tbody>
+        {% for c in costs %}
+        <tr>
+          <td>{{ c.date }}</td><td>{{ c.category or '-' }}</td><td>{{ c.description }}</td>
+          <td class="text-end">{{ '%.2f'|format(c.amount) }}</td>
+          <td>{% if c.payment_method=='Gotówka' %}<span class="badge badge-cash">Gotówka</span>{% else %}<span class="badge badge-transfer">Przelew</span>{% endif %}</td>
+          <td class="text-end">
+            <a href="{{ url_for('edit_cost', cost_id=c.id) }}" class="btn btn-sm btn-outline-primary me-1" aria-label="Edytuj koszt"><i class="bi bi-pencil-square"></i></a>
+            <form action="{{ url_for('delete_cost', cost_id=c.id) }}" method="POST" class="d-inline"><button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button></form>
+          </td>
+        </tr>
+        {% endfor %}
+        {% if costs|length==0 %}
+        <tr><td colspan="6" class="text-center py-4 text-muted">Brak kosztów do wyświetlenia.</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div></div>
+</div>
+<div class="offcanvas offcanvas-end" tabindex="-1" id="filters">
+  <div class="offcanvas-header"><h5 class="offcanvas-title"><i class="bi bi-funnel me-1"></i> Filtry</h5><button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button></div>
+  <div class="offcanvas-body small"><form method="GET" action="{{ url_for('costs_list') }}">
+    <label class="form-label">Zakres dat</label>
+    <input type="date" name="date_from" class="form-control mb-2" value="{{ request.args.get('date_from','') }}">
+    <input type="date" name="date_to" class="form-control mb-3" value="{{ request.args.get('date_to','') }}">
+    <label class="form-label">Kategoria</label>
+    <input type="text" name="category" class="form-control mb-3" placeholder="np. Jedzenie" value="{{ request.args.get('category','') }}">
+    <label class="form-label">Sposób płatności</label>
+    <div class="form-check mb-1"><input class="form-check-input" type="checkbox" name="cash" id="cash" {% if request.args.get('cash') %}checked{% endif %}><label class="form-check-label" for="cash">Gotówka</label></div>
+    <div class="form-check mb-3"><input class="form-check-input" type="checkbox" name="transfer" id="transfer" {% if request.args.get('transfer') %}checked{% endif %}><label class="form-check-label" for="transfer">Przelew</label></div>
+    <button class="btn btn-primary w-100 mb-2" type="submit"><i class="bi bi-search me-1"></i> Zastosuj</button>
+    <a href="{{ url_for('costs_list') }}" class="btn btn-outline-secondary w-100">Anuluj</a>
+  </form></div>
+</div>
+{% endblock %}
