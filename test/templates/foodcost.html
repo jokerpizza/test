@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% block head %}
+<style>
+/* Optional custom styles for Food Cost page */
+</style>
+{% endblock %}
+{% block content %}
+<ul class="nav nav-pills mb-4">
+  <li class="nav-item"><a class="nav-link {% if tab=='products' %}active{% endif %}" href="{{ url_for('foodcost', tab='products') }}">Produkty</a></li>
+  <li class="nav-item"><a class="nav-link {% if tab=='dishes' %}active{% endif %}" href="{{ url_for('foodcost', tab='dishes') }}">Dania</a></li>
+  <li class="nav-item"><a class="nav-link {% if tab=='analysis' %}active{% endif %}" href="{{ url_for('foodcost', tab='analysis') }}">Analiza</a></li>
+</ul>
+
+{% if tab=='products' %}
+<div class="fc-card">
+  <h4>Produkty</h4>
+  <form action="{{ url_for('add_product') }}" method="POST" class="d-flex mb-3">
+    <input name="name" id="newProdName" class="form-control me-2" placeholder="Nazwa produktu" required>
+    <input name="price_per_kg" id="newProdPrice" type="number" step="0.01" class="form-control me-2" placeholder="Cena/kg" required>
+    <button type="submit" class="btn fc-btn">Dodaj</button>
+  </form>
+  <table class="table table-dark table-striped">
+    <thead><tr><th>Nazwa</th><th>Cena/kg</th><th>Historia</th></tr></thead>
+    <tbody>
+      {% for p in products %}
+      <tr>
+        <td>{{ p.name }}</td>
+        <td>
+          <form action="{{ url_for('update_price', product_id=p.id) }}" method="POST" class="d-flex">
+            <input name="price_per_kg" type="number" step="0.01" value="{{ '%.2f'|format(p.price_per_kg) }}" class="form-control me-2" required>
+            <button type="submit" class="btn btn-sm fc-btn">OK</button>
+          </form>
+        </td>
+        <td><button class="btn btn-sm btn-secondary history-btn" data-id="{{ p.id }}">Historia</button></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- Modal Historii Cen -->
+<div class="modal fade" id="historyModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content fc-card">
+      <div class="modal-header"><h5 class="modal-title">Historia cen: <span id="histProdName"></span></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body">
+        <canvas id="historyChart"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% elif tab=='dishes' %}
+<div class="fc-card">
+  <h4>Dania</h4>
+  <form action="{{ url_for('add_dish') }}" method="POST" class="mb-4">
+    <div class="row mb-2">
+      <div class="col"><input name="name" class="form-control" placeholder="Nazwa dania" required></div>
+      <div class="col"><input name="sale_price" type="number" step="0.01" class="form-control" placeholder="Cena sprzedaży" required></div>
+    </div>
+    <div id="recipeItems">
+      <div class="d-flex mb-2">
+        <select name="product_id_0" class="form-select me-2">
+          {% for p in products %}<option value="{{ p.id }}">{{ p.name }}</option>{% endfor %}
+        </select>
+        <input name="weight_kg_0" type="number" step="0.01" class="form-control me-2" placeholder="kg" required>
+      </div>
+    </div>
+    <button type="button" id="addIng" class="btn btn-sm mb-3">Dodaj składnik</button>
+    <button type="submit" class="btn fc-btn">Zapisz danie</button>
+  </form>
+  <table class="table table-dark table-striped">
+    <thead><tr><th>Nazwa</th><th>Cena</th></tr></thead>
+    <tbody>
+      {% for d in dishes %}
+      <tr><td>{{ d.name }}</td><td>{{ '%.2f'|format(d.sale_price) }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% elif tab=='analysis' %}
+<div class="fc-card">
+  <h4>Analiza Kosztów</h4>
+  <canvas id="analysisChart"></canvas>
+</div>
+{% endif %}
+{% endblock %}
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// History Chart
+let histChart;
+document.querySelectorAll('.history-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const pid = btn.dataset.id;
+    const pname = btn.closest('tr').querySelector('td').innerText;
+    document.getElementById('histProdName').innerText = pname;
+    fetch(`/api/price_history?product_id=${pid}`)
+      .then(r=>r.json()).then(data=>{
+        const ctx = document.getElementById('historyChart').getContext('2d');
+        if(histChart) histChart.destroy();
+        histChart = new Chart(ctx, {type:'line', data:{labels:data.map(d=>d.date), datasets:[{label:'Cena',data:data.map(d=>d.price)}]}});        
+        new bootstrap.Modal(document.getElementById('historyModal')).show();
+      });
+  });
+});
+
+// Add Ingredient
+let ingIdx = 1;
+document.getElementById('addIng').addEventListener('click', ()=>{
+  const row = document.createElement('div'); row.className='d-flex mb-2';
+  row.innerHTML = `
+    <select name="product_id_${ingIdx}" class="form-select me-2">
+      {% for p in products %}<option value="{{ p.id }}">{{ p.name }}</option>{% endfor %}
+    </select>
+    <input name="weight_kg_${ingIdx}" type="number" step="0.01" class="form-control me-2" placeholder="kg" required>
+  `;
+  document.getElementById('recipeItems').append(row);
+  ingIdx++;
+});
+
+// Analysis Chart
+{% if tab=='analysis' %}
+const anaData = {{ analysis|tojson }};
+const ctxA = document.getElementById('analysisChart').getContext('2d');
+new Chart(ctxA,{type:'bar', data:{labels:anaData.map(a=>a.dish), datasets:[{label:'%',data:anaData.map(a=>a.pct)}]}});
+{% endif %}
+</script>
+{% endblock %}
