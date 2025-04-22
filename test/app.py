@@ -476,18 +476,100 @@ def cost_summary():
     selected_month = request.args.get('month', current_month, type=int)
     selected_year_month = f"{selected_year}-{selected_month:02d}"
 
-        # Koszty – wyłącznie gotówka
-        costs = Cost.query.filter(
-            Cost.date >= start,
-            Cost.date <= end,
-            Cost.payment_method == 'Gotówka'
-        ).all()
-        # Koszty – wyłącznie gotówka
-        costs = Cost.query.filter(
-            Cost.date >= start,
-            Cost.date <= end,
-            Cost.payment_method == 'Gotówka'
-        ).all()
+    costs = Cost.query.filter(
+        Cost.date >= start,
+        Cost.date <= end,
+        Cost.payment_method == 'Gotówka'
+    ).all()
+    summary = {}
+    for cost in costs:
+        cat = cost.category
+        summary[cat] = summary.get(cat, 0) + cost.amount
+
+    return render_template(
+        'cost_summary.html',
+        summary=summary,
+        selected_year=selected_year,
+        selected_month=selected_month
+    )
+
+# ---------------------------
+# Zarządzanie kategoriami (settings)
+# ---------------------------
+@app.route('/manage_users', methods=['GET', 'POST'])
+@login_required
+@role_required('manage_users')
+def manage_users():
+    if request.method == 'POST':
+        # Aktualizacja uprawnień user-specific
+        for user in User.query.all():
+            RolePermissions.query.filter_by(user_id=user.id).delete()
+
+            permissions = request.form.getlist(f"permissions_{user.id}")
+            for permission in permissions:
+                new_perm = RolePermissions(user_id=user.id, permission=permission, role=None)
+                db.session.add(new_perm)
+        
+        db.session.commit()
+        flash("Zaktualizowano uprawnienia użytkowników.")
+
+    users = User.query.all()
+    for u in users:
+        u.permissions = [perm.permission for perm in RolePermissions.query.filter_by(user_id=u.id).all()]
+
+    return render_template('manage_users.html', users=users)
+
+# ---------------------------
+# SEJF / SALDO (z filtrowaniem dat, domyślnie ostatnie 7 dni)
+# ---------------------------
+@app.route('/sejf_saldo', methods=['GET', 'POST'])
+@login_required
+def sejf_saldo():
+    """Wyświetla i obsługuje stan sejfu (gotówka),
+       rejestruje wpłaty/wypłaty do/z bankomatu,
+       pokazuje listę transakcji (z możliwością filtrowania zakresu dat)."""
+
+    # 1. Dodawanie nowej transakcji (POST)
+    if request.method == 'POST':
+        amount = float(request.form.get('amount', 0))
+        transaction_type = request.form.get('type')  # "wpłata" / "wypłata"
+
+        if amount > 0:
+            new_transaction = SafeTransaction(
+                date=date.today().strftime("%Y-%m-%d"),
+                type=transaction_type,
+                amount=amount,
+                user_id=session.get('user_id')
+            )
+            db.session.add(new_transaction)
+            db.session.commit()
+
+        return redirect(url_for('sejf_saldo'))
+
+    # 2. Filtrowanie zakresu dat (GET)
+    start_date_str = request.args.get('start_date')
+    end_date_str = request.args.get('end_date')
+
+    # Domyślnie: od 1 stycznia 2025 do dziś
+    if not start_date_str and not end_date_str:
+        start_date_str = date(2025, 1, 1).strftime("%Y-%m-%d")
+        end_date_str   = date.today().strftime("%Y-%m-%d")
+
+    # Zapamiętujemy wybrane daty, by wyświetlić je w formularzu
+    selected_start_date = start_date_str
+    selected_end_date = end_date_str
+
+    # 3. Pobieramy z bazy transakcje z wybranego zakresu dat
+    sales = Sale.query.filter(Sale.date >= start_date_str, Sale.date <= end_date_str).all()
+    costs = Cost.query.filter(
+        Cost.date >= start,
+        Cost.date <= end,
+        Cost.payment_method == 'Gotówka'
+    ).all()
+    safe_transactions = SafeTransaction.query.filter(
+        SafeTransaction.date >= start_date_str,
+        SafeTransaction.date <= end_date_str
+    ).all()
 
     transactions = []
 
@@ -706,9 +788,150 @@ def api_costs_summary():
 
     def get_data(s, e):
         # parse dates
-            # Koszty – wyłącznie gotówka
-            costs = Cost.query.filter(
-                Cost.date >= start,
-                Cost.date <= end,
-                Cost.payment_method == 'Gotówka'
-            ).all()
+        costs = Cost.query.filter(
+            Cost.date >= start,
+            Cost.date <= end,
+            Cost.payment_method == 'Gotówka'
+        ).all()
+        total = sum(c.amount for c in costs)
+        cats = {}
+        for c in costs:
+            parts = (c.category or 'Inne').split(' / ')
+            main = parts[0]
+            sub = parts[1] if len(parts) > 1 else 'Inne'
+            if main not in cats:
+                cats[main] = {'name': main, 'amount': 0, 'sub': {}}
+            cats[main]['amount'] += c.amount
+            cats[main]['sub'].setdefault(sub, 0)
+            cats[main]['sub'][sub] += c.amount
+        result = []
+        for info in cats.values():
+            result.append({
+                'name': info['name'],
+                'amount': info['amount'],
+                'sub': [{'name': k, 'amount': v} for k, v in info['sub'].items()]
+            })
+        return {'total': total, 'categories': result}
+
+    dataA = get_data(start, end)
+    if cmp_start and cmp_end:
+        dataB = get_data(cmp_start, cmp_end)
+    else:
+        # fallback to previous same-length period
+        from datetime import timedelta
+        from datetime import date
+        delta = None
+        try:
+            start_date = date.fromisoformat(start)
+            end_date = date.fromisoformat(end)
+            delta = end_date - start_date
+        except:
+            delta = None
+        if delta:
+            prev_start = (date.fromisoformat(start) - delta - timedelta(days=1)).isoformat()
+            prev_end   = (date.fromisoformat(end) - timedelta(days=1)).isoformat()
+            dataB = get_data(prev_start, prev_end)
+        else:
+            dataB = {'total': 0, 'categories': []}
+
+    return jsonify({'periodA': dataA, 'periodB': dataB})
+
+
+@app.route('/logi')
+@login_required
+def logi():
+    start_date_str = request.args.get('start_date')
+    end_date_str = request.args.get('end_date')
+    query = AuditLog.query
+    if start_date_str:
+        from datetime import datetime
+        start = datetime.strptime(start_date_str, '%Y-%m-%d')
+        query = query.filter(AuditLog.timestamp >= start)
+    if end_date_str:
+        from datetime import datetime
+        end = datetime.strptime(end_date_str, '%Y-%m-%d')
+        query = query.filter(AuditLog.timestamp <= end)
+    page = int(request.args.get('page', 1))
+    per_page = 50
+    pagination = query.order_by(AuditLog.timestamp.desc()).paginate(page=page, per_page=per_page, error_out=False)
+    return render_template('logi.html', logs=pagination.items, pagination=pagination, start_date=start_date_str, end_date=end_date_str)
+
+
+# --- Food Cost feature routes ---
+@app.route('/foodcost')
+@login_required
+def foodcost():
+    # Tab selection
+    tab = request.args.get('tab', 'products')
+    products = Product.query.all()
+    dishes = Dish.query.all()
+    # For analysis tab, compute food cost
+    analysis = []
+    if tab == 'analysis':
+        for dish in dishes:
+            total_cost = sum(item.weight_kg * item.product.price_per_kg for item in dish.recipe_items)
+            pct = (total_cost / dish.sale_price * 100) if dish.sale_price else 0
+            analysis.append({'dish': dish.name, 'cost': total_cost, 'pct': pct})
+    return render_template('foodcost.html',
+                           tab=tab,
+                           products=products,
+                           dishes=dishes,
+                           analysis=analysis)
+
+
+# --- Food Cost add endpoints ---
+@app.route('/add_product', methods=['POST'])
+@login_required
+def add_product():
+    name = request.form.get('name', '').strip()
+    price = request.form.get('price_per_kg', '').strip()
+    try:
+        price = float(price)
+    except:
+        flash('Nieprawidłowa cena', 'danger')
+        return redirect(url_for('foodcost', tab='products'))
+    if not name or price < 0:
+        flash('Wszystkie pola wymagane', 'danger')
+        return redirect(url_for('foodcost', tab='products'))
+    prod = Product(name=name, price_per_kg=price)
+    db.session.add(prod)
+    db.session.commit()
+    flash('Produkt dodany', 'success')
+    return redirect(url_for('foodcost', tab='products'))
+
+@app.route('/add_dish', methods=['POST'])
+@login_required
+def add_dish():
+    name = request.form.get('name', '').strip()
+    sale_price = request.form.get('sale_price', '').strip()
+    try:
+        sale_price = float(sale_price)
+    except:
+        flash('Nieprawidłowa cena sprzedaży', 'danger')
+        return redirect(url_for('foodcost', tab='dishes'))
+    if not name or sale_price < 0:
+        flash('Wszystkie pola wymagane', 'danger')
+        return redirect(url_for('foodcost', tab='dishes'))
+    dish = Dish(name=name, sale_price=sale_price)
+    db.session.add(dish)
+    db.session.flush()
+    # gather recipe items
+    for key, value in request.form.items():
+        if key.startswith('product_id_'):
+            idx = key.split('product_id_')[1]
+            prod_id = int(value)
+            weight = request.form.get(f'weight_kg_{idx}', '').strip()
+            try:
+                w = float(weight)
+            except:
+                continue
+            if w > 0:
+                ri = RecipeItem(dish_id=dish.id, product_id=prod_id, weight_kg=w)
+                db.session.add(ri)
+    db.session.commit()
+    flash('Danie dodane', 'success')
+    return redirect(url_for('foodcost', tab='dishes'))
+
+if __name__ == '__main__':
+
+    app.run(debug=True)
