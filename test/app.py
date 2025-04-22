@@ -312,7 +312,7 @@ def add_cost():
 @login_required
 def costs_list():
     """Filtrowana lista kosztów"""
-    q = Cost.query
+    q = Cost.query.order_by(Cost.date.desc())  # show all costs, sorted by date
     date_from = request.args.get('date_from')
     date_to = request.args.get('date_to')
     if date_from: q = q.filter(Cost.date >= date_from)
@@ -476,7 +476,11 @@ def cost_summary():
     selected_month = request.args.get('month', current_month, type=int)
     selected_year_month = f"{selected_year}-{selected_month:02d}"
 
-    costs = Cost.query.filter(Cost.date.startswith(selected_year_month)).all()
+    costs = Cost.query.filter(
+        Cost.date >= start,
+        Cost.date <= end,
+        Cost.payment_method == 'Gotówka'
+    ).all()
     summary = {}
     for cost in costs:
         cat = cost.category
@@ -557,7 +561,11 @@ def sejf_saldo():
 
     # 3. Pobieramy z bazy transakcje z wybranego zakresu dat
     sales = Sale.query.filter(Sale.date >= start_date_str, Sale.date <= end_date_str).all()
-    costs = Cost.query.filter(Cost.date >= start_date_str, Cost.date <= end_date_str).all()
+    costs = Cost.query.filter(
+        Cost.date >= start,
+        Cost.date <= end,
+        Cost.payment_method == 'Gotówka'
+    ).all()
     safe_transactions = SafeTransaction.query.filter(
         SafeTransaction.date >= start_date_str,
         SafeTransaction.date <= end_date_str
@@ -780,7 +788,11 @@ def api_costs_summary():
 
     def get_data(s, e):
         # parse dates
-        costs = Cost.query.filter(Cost.date >= s, Cost.date <= e).all()
+    costs = Cost.query.filter(
+        Cost.date >= start,
+        Cost.date <= end,
+        Cost.payment_method == 'Gotówka'
+    ).all()
         total = sum(c.amount for c in costs)
         cats = {}
         for c in costs:
