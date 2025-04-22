@@ -312,7 +312,7 @@ def add_cost():
 @login_required
 def costs_list():
     """Filtrowana lista kosztów"""
-    q = Cost.query.filter_by(user_id=session.get('user_id'))
+    q = Cost.query
     date_from = request.args.get('date_from')
     date_to = request.args.get('date_to')
     if date_from: q = q.filter(Cost.date >= date_from)
