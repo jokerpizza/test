@@ -556,6 +556,7 @@ def sejf_saldo():
     selected_end_date = end_date_str
 
     # 3. Pobieramy z bazy transakcje z wybranego zakresu dat
+    sales = Sale.query.filter(Sale.date >= start_date_str, Sale.date <= end_date_str).all()
     costs = Cost.query.filter(
         Cost.date >= start_date_str,
         Cost.date <= end_date_str,
